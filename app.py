@@ -2,30 +2,52 @@ import streamlit as st
 import pandas as pd
 import pickle
 import os
+from sklearn.linear_model import LinearRegression
 
 st.set_page_config(page_title="Student Marks Prediction", page_icon="📘")
 st.title("📘 Student Marks Prediction")
 
 MODEL_FILE = "student_marks_model.pkl"
 
-# Check model file (NO uploader)
+# ----------------------------
+# Auto-create model if missing
+# ----------------------------
 if not os.path.exists(MODEL_FILE):
-    st.error("❌ Model file not found!")
-    st.info("Place 'student_marks_model.pkl' in the same folder as app.py")
-    st.stop()
+    # Sample training data
+    data = {
+        "Hours": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "Marks": [35, 40, 50, 60, 65, 70, 75, 85, 90]
+    }
 
+    df = pd.DataFrame(data)
+
+    X = df[["Hours"]]
+    y = df["Marks"]
+
+    model = LinearRegression()
+    model.fit(X, y)
+
+    with open(MODEL_FILE, "wb") as f:
+        pickle.dump(model, f)
+
+# ----------------------------
 # Load model
+# ----------------------------
 with open(MODEL_FILE, "rb") as f:
     model = pickle.load(f)
 
-# Input
+# ----------------------------
+# User Input
+# ----------------------------
 hours = st.number_input(
     "Enter study hours",
     min_value=0.0,
     value=2.5
 )
 
-# Predict
+# ----------------------------
+# Prediction
+# ----------------------------
 if st.button("Predict Marks"):
     df = pd.DataFrame([[hours]], columns=["Hours"])
     prediction = model.predict(df)
